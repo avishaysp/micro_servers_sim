@@ -1,5 +1,3 @@
-import random
-
 from scipy.stats import poisson
 from tasks.task import SubTask, Packet
 from utils import random_array_sum_to_n, weighted_shuffle
