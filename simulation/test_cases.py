@@ -7,5 +7,11 @@ test_cases_list = [(ConstIntervalFixPacketsTask, False),
                    (RandIntervalNotOrderedPacketsTask, False),
                    (RandIntervalNotOrderedPacketsTask, True)]
 
+test_case_name = ["Constant Interval Tasks",
+                  "Random Interval Tasks",
+                  "Fragmented Tasks",
+                  "Overlapping Tasks",
+                  "Small Prob. of Servers Failure"]
+
 
 percentages = [10, 20, 30, 40, 50]

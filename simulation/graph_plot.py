@@ -4,7 +4,7 @@ from consts import SHOULD_SAVE
 import pandas as pd
 
 
-from .test_cases import test_cases_list, percentages
+from .test_cases import test_cases_list, test_case_name
 
 
 def create_stat_result_graph(results, func, percentages, func_name):
@@ -14,7 +14,7 @@ def create_stat_result_graph(results, func, percentages, func_name):
     data = {}
 
     for i, test_case in enumerate(compress_results):
-        title = f"{test_cases_list[i][0].__name__} {'with' if test_cases_list[i][1] else 'without'} drop"
+        title = test_case_name[i]
         if SHOULD_SAVE:
             data[title] = test_case
         plt.plot(percentages, test_case, label=f"{title}")
