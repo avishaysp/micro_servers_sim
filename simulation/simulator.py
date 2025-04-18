@@ -8,6 +8,7 @@ from tasks.task import TaskList
 from .test_cases import test_cases_list, percentages
 from consts import NUMBER_OT_TASKS, FAIL_PROB, TIME_DOWN_LAMBDA, NUMBER_OF_SIM
 import numpy as np
+import concurrent.futures
 
 test_model = {"mu_list": [1024]}
 
@@ -46,12 +47,26 @@ def create_model(env, model_to_test, process_time_list, task_list, with_fails, l
 def run_simulation():
     shape = (len(test_cases_list), len(percentages), NUMBER_OF_SIM)
     results = np.empty(shape, dtype=object)
+
+    total_runs = len(test_cases_list) * len(percentages) * NUMBER_OF_SIM
     l = 1
-    for i, test_case in enumerate(test_cases_list):
-        for j, perc in enumerate(percentages):
-            lamb = 100 / perc
-            for k in range(NUMBER_OF_SIM):
-                print(f"current run: {l} / {len(test_cases_list) * len(percentages) * NUMBER_OF_SIM}")
-                results[i][j][k] = run_model(lamb, test_model, test_case[0], test_case[1])
-                l += 1
+
+    # Use ThreadPoolExecutor for multi-threading
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_index = {}
+
+        for i, test_case in enumerate(test_cases_list):
+            for j, perc in enumerate(percentages):
+                lamb = 100 / perc
+                for k in range(NUMBER_OF_SIM):
+                    # print(f"current run: {l} / {total_runs}")
+                    future = executor.submit(run_model, lamb, test_model, test_case[0], test_case[1])
+                    future_to_index[future] = (i, j, k)
+                    l += 1
+
+        # Collect results as threads complete
+        for future in concurrent.futures.as_completed(future_to_index):
+            i, j, k = future_to_index[future]
+            results[i][j][k] = future.result()
+
     summarize_results(results)

@@ -18,7 +18,7 @@ class LoadBalancer:
         while True:
             if self.queue.items:  # Check if there are items in the queue
                 packet = yield self.queue.get()
-                print(f"{self.env.now}: packet {packet.id} arrived")
+                # print(f"{self.env.now}: packet {packet.id} arrived")
                 if self.method == "rr":
                     self.env.process(self._send_packet_rr(packet))
                 elif self.method == "rand":

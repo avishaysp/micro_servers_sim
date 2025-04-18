@@ -18,7 +18,7 @@ class Aggregator:
                 task = subtask.parent_task
                 self.task_status[task] += 1
                 if self.task_status[task] == TASK_SIZE:
-                    print(f"{self.env.now}: task {task} is completed")
+                    # print(f"{self.env.now}: task {task} is completed")
                     self.task_completed += 1
                     self.task_list.tasks_list[task].end_time = self.env.now
 
