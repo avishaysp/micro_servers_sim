@@ -3,7 +3,7 @@ import simpy
 from model.join_fork_model import JoinForkModel
 from simulation.graph_plot import create_stat_result_graph
 from simulation.stats_calculator import calculate_avg, calculate_min, calculate_max, calculate_system_utilization, \
-    calculate_var
+    calculate_std
 from tasks.task import TaskList
 from .test_cases import test_cases_list, percentages
 from .models import models
@@ -16,7 +16,7 @@ def summarize_results(results, model_description):
     create_stat_result_graph(results, calculate_avg, percentages, "Avg. Processing Time", model_description)
     create_stat_result_graph(results, calculate_min, percentages, "Min. Processing Time", model_description)
     create_stat_result_graph(results, calculate_max, percentages, "Max. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_var, percentages, "Var. Processing Time", model_description)
+    create_stat_result_graph(results, calculate_std, percentages, "STD. Processing Time", model_description)
     create_stat_result_graph(results, calculate_system_utilization, percentages, "Utilization Perc", model_description)
 
 
@@ -28,7 +28,7 @@ def run_model(lamb, model_to_test, packet_generator, with_fails):
     model, new_lamb = create_model(env, model_to_test, process_time_list, task_list, with_fails, lamb)
     tasks_generator = packet_generator(new_lamb, NUMBER_OT_TASKS, env, model)
     env.process(tasks_generator.tasks_generator())
-    env.run(until=15000)
+    env.run(until=model.aggregator.stop_event)
     return {"generator": packet_generator.__class__.__name__, "lambda": new_lamb,
             "task_results": task_list, "processing_results": process_time_list,
             "mu_list": model_to_test["mu_list"]}
@@ -49,8 +49,7 @@ def run_simulation():
         shape = (len(test_cases_list), len(percentages), NUMBER_OF_SIM)
         results = np.empty(shape, dtype=object)
 
-        # Use ThreadPoolExecutor for multi-threading
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             future_to_index = {}
 
             for i, test_case in enumerate(test_cases_list):
@@ -61,7 +60,6 @@ def run_simulation():
                         future = executor.submit(run_model, lamb, model, test_case[0], test_case[1])
                         future_to_index[future] = (i, j, k)
 
-            # Collect results as threads complete
             for future in concurrent.futures.as_completed(future_to_index):
                 i, j, k = future_to_index[future]
                 results[i][j][k] = future.result()
