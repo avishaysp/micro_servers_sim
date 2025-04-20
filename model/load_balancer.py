@@ -16,18 +16,14 @@ class LoadBalancer:
 
     def send_packet(self):
         while True:
-            if self.queue.items:  # Check if there are items in the queue
-                packet = yield self.queue.get()
-                # print(f"{self.env.now}: packet {packet.id} arrived")
-                if self.method == "rr":
-                    self.env.process(self._send_packet_rr(packet))
-                elif self.method == "rand":
-                    self.env.process(self._send_packet_rand(packet))
-                else:
-                    self.env.process(self._send_packet_ll(packet))
-                continue
+            packet = yield self.queue.get()
+            # print(f"{self.env.now}: packet {packet.id} arrived")
+            if self.method == "rr":
+                self.env.process(self._send_packet_rr(packet))
+            elif self.method == "rand":
+                self.env.process(self._send_packet_rand(packet))
             else:
-                yield self.env.timeout(0.01)
+                self.env.process(self._send_packet_ll(packet))
 
     def _send_packet_rr(self, packet):
         for subtask in packet.subtasks:
