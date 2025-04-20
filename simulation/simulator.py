@@ -1,7 +1,7 @@
 import simpy
 
 from model.join_fork_model import JoinForkModel
-from simulation.graph_plot import create_stat_result_graph
+from simulation.graph_plot import save_stats
 from simulation.stats_calculator import calculate_avg, calculate_min, calculate_max, calculate_system_utilization, \
     calculate_std
 from tasks.task import TaskList
@@ -13,11 +13,11 @@ import concurrent.futures
 
 
 def summarize_results(results, model_description):
-    create_stat_result_graph(results, calculate_avg, percentages, "Avg. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_min, percentages, "Min. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_max, percentages, "Max. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_std, percentages, "STD. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_system_utilization, percentages, "Utilization Perc", model_description)
+    save_stats(results, calculate_avg, percentages, "Avg. Processing Time", model_description)
+    save_stats(results, calculate_min, percentages, "Min. Processing Time", model_description)
+    save_stats(results, calculate_max, percentages, "Max. Processing Time", model_description)
+    save_stats(results, calculate_std, percentages, "STD Processing Time", model_description)
+    save_stats(results, calculate_system_utilization, percentages, "Utilization Perc", model_description)
 
 
 def run_model(lamb, model_to_test, packet_generator, with_fails):
