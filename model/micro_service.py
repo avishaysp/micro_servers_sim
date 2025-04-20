@@ -18,10 +18,10 @@ class MicroService:
         while True:
             if random.random() < self.fail_perc:
                 yield self.env.timeout(random.expovariate(self.time_down_lambs))
-            if self.queue.items:
-                subtask = yield self.queue.get()
-                process_start = self.env.now
-                # print(f"{process_start}: server #{self.ms_id}# start processing subtask {subtask.id} from task {subtask.parent_task}")
-                yield self.env.timeout(random.expovariate(self.exp_mu))
-                self.process_time_list[self.ms_id] += (self.env.now - process_start)
-                yield self.aggregator.queue.put(subtask)
+
+            subtask = yield self.queue.get()
+            process_start = self.env.now
+            # print(f"{process_start}: server #{self.ms_id}# start processing subtask {subtask.id} from task {subtask.parent_task}")
+            yield self.env.timeout(random.expovariate(self.exp_mu))
+            self.process_time_list[self.ms_id] += (self.env.now - process_start)
+            yield self.aggregator.queue.put(subtask)
