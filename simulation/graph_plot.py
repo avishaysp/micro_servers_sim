@@ -4,10 +4,10 @@ from consts import SHOULD_SAVE
 import pandas as pd
 
 
-from .test_cases import test_cases_list, test_case_name
+from .test_cases import test_case_name
 
 
-def create_stat_result_graph(results, func, percentages, func_name):
+def create_stat_result_graph(results, func, percentages, func_name, model_description):
     vectorized_func = np.vectorize(func)
     results_after_calc_stat = vectorized_func(results)
     compress_results = np.mean(results_after_calc_stat, axis=2)
@@ -22,10 +22,10 @@ def create_stat_result_graph(results, func, percentages, func_name):
 
     if SHOULD_SAVE:
         df = pd.DataFrame(data, index=percentages)
-        df.to_csv(f"results/{func_name}.csv", index=True)
+        df.to_csv(f"results/{func_name} - {model_description}.csv", index=True)
     plt.xlabel("lambdas")
     plt.ylabel(f"{func_name}")
-    plt.title(f"{func_name} vs. Lambda")
+    plt.title(f"{func_name} - {model_description} vs. Lambda")
     plt.legend()
 
     # Display the plot

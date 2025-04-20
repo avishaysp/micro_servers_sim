@@ -14,4 +14,4 @@ test_case_name = ["Constant Interval Tasks",
                   "Small Prob. of Servers Failure"]
 
 
-percentages = [10, 20, 30, 40, 50]
+percentages = [10, 20]
