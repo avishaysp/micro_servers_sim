@@ -3,7 +3,7 @@ import simpy
 from model.join_fork_model import JoinForkModel
 from simulation.graph_plot import create_stat_result_graph
 from simulation.stats_calculator import calculate_avg, calculate_min, calculate_max, calculate_system_utilization, \
-    calculate_var
+    calculate_std
 from tasks.task import TaskList
 from .test_cases import test_cases_list, percentages
 from .models import models
@@ -16,7 +16,7 @@ def summarize_results(results, model_description):
     create_stat_result_graph(results, calculate_avg, percentages, "Avg. Processing Time", model_description)
     create_stat_result_graph(results, calculate_min, percentages, "Min. Processing Time", model_description)
     create_stat_result_graph(results, calculate_max, percentages, "Max. Processing Time", model_description)
-    create_stat_result_graph(results, calculate_var, percentages, "Var. Processing Time", model_description)
+    create_stat_result_graph(results, calculate_std, percentages, "STD. Processing Time", model_description)
     create_stat_result_graph(results, calculate_system_utilization, percentages, "Utilization Perc", model_description)
 
 

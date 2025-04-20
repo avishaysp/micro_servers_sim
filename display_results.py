@@ -4,7 +4,7 @@ import pandas as pd
 files_name = ["Avg. Processing Time",
               "Min. Processing Time",
               "Max. Processing Time",
-              "Var. Processing Time",
+              "STD. Processing Time",
               "Utilization Perc"]
 
 fig = plt.figure(figsize=(15, 10))

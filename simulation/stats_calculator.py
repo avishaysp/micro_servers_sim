@@ -16,9 +16,9 @@ def calculate_max(result):
     return np.max(list_to_calc)
 
 
-def calculate_var(result):
+def calculate_std(result):
     list_to_calc = create_args_to_calculate_from_result(result, True)
-    return np.var(list_to_calc)
+    return np.std(list_to_calc)
 
 
 def calculate_system_utilization(result):
