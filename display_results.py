@@ -1,42 +1,104 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+import re
 
-files_name = ["Avg. Processing Time",
-              "Min. Processing Time",
-              "Max. Processing Time",
-              "STD. Processing Time",
-              "Utilization Perc"]
+# --- New code to discover metrics, models, and test cases ---
+results_dir = "results"
+all_files = []
+if os.path.exists(results_dir):
+    all_files = [f for f in os.listdir(results_dir) if f.endswith(".csv")]
+else:
+    print(f"Error: Results directory '{results_dir}' not found.")
+    exit()
 
-fig = plt.figure(figsize=(15, 10))
-gs = fig.add_gridspec(2, 3)
+if not all_files:
+    print(f"Error: No CSV files found in '{results_dir}'.")
+    exit()
 
-# Define subplot positions
-ax1 = fig.add_subplot(gs[0, 0])  # First row, first column
-ax2 = fig.add_subplot(gs[0, 1])  # First row, second column
-ax3 = fig.add_subplot(gs[0, 2])  # Second row, first column
-ax4 = fig.add_subplot(gs[1, 0])  # Second row, second column
-ax5 = fig.add_subplot(gs[1, 1])  # Third row, spanning all columns
+metrics = set()
+models = set()
+test_cases = None
+first_file_processed = False
+file_pattern = re.compile(r"^(.*?) - (.*?)\.csv$")
 
-axes = [ax1, ax2, ax3, ax4, ax5]  # List of subplot axes
+for filename in all_files:
+    match = file_pattern.match(filename)
+    if match:
+        metric, model = match.groups()
+        metrics.add(metric)
+        models.add(model)
 
-# Loop through each file and plot on the corresponding subplot
-for i, file_name in enumerate(files_name):
-    fn = f"results/{file_name}.csv"
-    df = pd.read_csv(fn)
+        # Try to read test cases from the first valid file found
+        if not first_file_processed:
+            try:
+                file_path = os.path.join(results_dir, filename)
+                df_temp = pd.read_csv(file_path, index_col=0)
+                # Assuming the first column is the index (load percentage)
+                test_cases = df_temp.columns.tolist()
+                first_file_processed = True
+                print(f"Discovered test cases: {test_cases}")
+            except Exception as e:
+                print(f"Warning: Could not read {filename} to get test cases: {e}")
+    else:
+        print(f"Warning: Skipping file with unexpected name format: {filename}")
 
-    df.rename(columns={df.columns[0]: "x"}, inplace=True)
 
-    for column in df.columns[1:]:
-        axes[i].plot(df["x"], df[column], marker='o', label=column)
+# Convert sets to sorted lists for consistent plotting order
+metrics = sorted(list(metrics))
+models = sorted(list(models))
 
-    axes[i].set_xlabel("Load Percentage")
-    axes[i].set_ylabel(file_name)
-    axes[i].set_title(f"{file_name} VS Load Percentage")
-    axes[i].legend()
-    axes[i].grid(True)
+if not metrics:
+    print("Error: No metrics found. Ensure filenames are in 'Metric Name - Model Name.csv' format.")
+    exit()
+if not models:
+    print("Error: No models found. Ensure filenames are in 'Metric Name - Model Name.csv' format.")
+    exit()
+if not test_cases:
+    print("Error: Could not determine test cases from any CSV file.")
+    exit()
 
-# Adjust layout to prevent overlapping
-plt.tight_layout()
+print(f"Discovered metrics: {metrics}")
+print(f"Discovered models: {models}")
 
-# Show all subplots in the same figure
-plt.show()
+# --- New plotting logic ---
+# Loop through each metric
+for metric in metrics:
+    # Loop through each test case
+    for test_case in test_cases:
+        plt.figure(figsize=(10, 6))  # Create a new figure for each metric/test_case pair
+        ax = plt.gca()  # Get current axes
+
+        # Loop through each model to plot its data on the current figure
+        for model in models:
+            file_name = f"{metric} - {model}.csv"
+            file_path = os.path.join(results_dir, file_name)
+
+            if os.path.exists(file_path):
+                try:
+                    df = pd.read_csv(file_path, index_col=0)
+                    # Ensure the test case exists in this file's columns
+                    if test_case in df.columns:
+                         # Check if index is named, otherwise use df.index
+                        if df.index.name:
+                            x_values = df.index
+                        else:
+                             # If index has no name, assume it's the load percentage
+                             # If read_csv didn't set index_col=0 correctly, this might need adjustment
+                             x_values = df.index # Or potentially df.iloc[:, 0] if index is treated as data
+
+                        ax.plot(x_values, df[test_case], marker='o', label=model)
+                    else:
+                        print(f"Warning: Test case '{test_case}' not found in {file_name}")
+                except Exception as e:
+                    print(f"Error reading or plotting {file_path}: {e}")
+            else:
+                print(f"Warning: File not found for model '{model}', metric '{metric}': {file_name}")
+
+        ax.set_xlabel("Load Percentage")
+        ax.set_ylabel(metric)
+        ax.set_title(f"{metric} for {test_case} vs Load Percentage")
+        ax.legend()
+        ax.grid(True)
+        plt.tight_layout()
+        plt.show() # Show the plot for the current metric/test_case
