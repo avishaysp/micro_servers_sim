@@ -28,7 +28,7 @@ def run_model(lamb, model_to_test, packet_generator, with_fails):
     model, new_lamb = create_model(env, model_to_test, process_time_list, task_list, with_fails, lamb)
     tasks_generator = packet_generator(new_lamb, NUMBER_OT_TASKS, env, model)
     env.process(tasks_generator.tasks_generator())
-    env.run(until=15000)
+    env.run(until=model.aggregator.stop_event)
     return {"generator": packet_generator.__class__.__name__, "lambda": new_lamb,
             "task_results": task_list, "processing_results": process_time_list,
             "mu_list": model_to_test["mu_list"]}
