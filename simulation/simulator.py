@@ -49,8 +49,7 @@ def run_simulation():
         shape = (len(test_cases_list), len(percentages), NUMBER_OF_SIM)
         results = np.empty(shape, dtype=object)
 
-        # Use ThreadPoolExecutor for multi-threading
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             future_to_index = {}
 
             for i, test_case in enumerate(test_cases_list):
@@ -61,7 +60,6 @@ def run_simulation():
                         future = executor.submit(run_model, lamb, model, test_case[0], test_case[1])
                         future_to_index[future] = (i, j, k)
 
-            # Collect results as threads complete
             for future in concurrent.futures.as_completed(future_to_index):
                 i, j, k = future_to_index[future]
                 results[i][j][k] = future.result()
