@@ -1,6 +1,5 @@
 import random
 import simpy
-import math
 
 
 class MicroService:
@@ -19,19 +18,10 @@ class MicroService:
         while True:
             if random.random() < self.fail_perc:
                 yield self.env.timeout(random.expovariate(self.time_down_lambs))
-            if self.queue.items:
-                subtask = yield self.queue.get()
-                process_start = self.env.now
 
-                sigma = 0.5
-                mean_service_time = 1.0 / self.exp_mu
-                # mu = ln(mean) - sigma^2 / 2
-                mu = math.log(mean_service_time) - (sigma**2 / 2.0)
-
-                yield self.env.timeout(random.lognormvariate(mu, sigma))
-                self.process_time_list[self.ms_id] += (self.env.now - process_start)
-                yield self.aggregator.queue.put(subtask)
-
-
-
-
+            subtask = yield self.queue.get()
+            process_start = self.env.now
+            # print(f"{process_start}: server #{self.ms_id}# start processing subtask {subtask.id} from task {subtask.parent_task}")
+            yield self.env.timeout(random.expovariate(self.exp_mu))
+            self.process_time_list[self.ms_id] += (self.env.now - process_start)
+            yield self.aggregator.queue.put(subtask)
