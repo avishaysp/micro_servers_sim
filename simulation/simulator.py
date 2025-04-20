@@ -1,7 +1,7 @@
 import simpy
 
 from model.join_fork_model import JoinForkModel
-from simulation.graph_plot import save_stats
+from simulation.stats import save_stats
 from simulation.stats_calculator import calculate_avg, calculate_min, calculate_max, calculate_system_utilization, \
     calculate_std
 from tasks.task import TaskList
