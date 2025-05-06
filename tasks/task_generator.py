@@ -29,24 +29,24 @@ class ConstIntervalFixPacketsTask(TasksGenerator):
 
 
 class RandIntervalFixPacketsTask(TasksGenerator):
-    def __init__(self, lamdb, number_of_tasks: int, env, model):
+    def __init__(self, task_rate, number_of_tasks: int, env, model):
         super().__init__(number_of_tasks, env, model)
-        self.lamdb = lamdb
+        self.task_rate = task_rate
 
     def tasks_generator(self):
         """Generate task at with poisson distribution time intervals."""
         self.env.process(self.model.run_model())
         for task_id in range(self.number_of_tasks):
-            yield self.env.timeout(poisson.rvs(self.lamdb))  # Random inter-arrival time
+            yield self.env.timeout(poisson.rvs(self.task_rate))  # Random inter-arrival time
             subtasks = [SubTask(i, task_id) for i in range(TASK_SIZE)]
             packet = Packet(task_id, subtasks)
             yield self.model.load_balancer.queue.put(packet)
 
 
 class RandIntervalOrderedRandPacketsTask(TasksGenerator):
-    def __init__(self, lamdb, number_of_tasks: int, env, model):
+    def __init__(self, task_rate, number_of_tasks: int, env, model):
         super().__init__(number_of_tasks, env, model)
-        self.lamdb = lamdb
+        self.task_rate = task_rate
 
     def tasks_generator(self):
         """Generate task at with poisson distribution time intervals."""
@@ -60,19 +60,19 @@ class RandIntervalOrderedRandPacketsTask(TasksGenerator):
                 packets_list.append([SubTask(i, task_id) for i in range(start, start + size)])
                 start += size
 
-        lambda_scale_factor = self.number_of_tasks / len(packets_list)
+        task_rate_factor = self.number_of_tasks / len(packets_list)
 
         for subtasks in packets_list:
-            yield self.env.timeout(poisson.rvs(self.lamdb) * lambda_scale_factor)  # Random inter-arrival time
+            yield self.env.timeout(poisson.rvs(self.task_rate) * task_rate_factor)  # Random inter-arrival time
             packet = Packet(packet_id, subtasks)
             packet_id += 1
             yield self.model.load_balancer.queue.put(packet)
 
 
 class RandIntervalNotOrderedPacketsTask(TasksGenerator):
-    def __init__(self, lamdb, number_of_tasks: int, env, model):
+    def __init__(self, task_rate, number_of_tasks: int, env, model):
         super().__init__(number_of_tasks, env, model)
-        self.lamdb = lamdb
+        self.task_rate = task_rate
 
     def tasks_generator(self):
         """Generate task at with poisson distribution time intervals."""
@@ -91,10 +91,10 @@ class RandIntervalNotOrderedPacketsTask(TasksGenerator):
                 packets_list.append(subtasks)
 
         biased_shaffle = weighted_shuffle(packets_list)
-        lambda_scale_factor = self.number_of_tasks / len(packets_list)
+        task_rate_factor = self.number_of_tasks / len(packets_list)
 
         for subtasks_for_packet in biased_shaffle:
-            yield self.env.timeout(poisson.rvs(self.lamdb) * lambda_scale_factor)
+            yield self.env.timeout(poisson.rvs(self.task_rate) * task_rate_factor)
             packet = Packet(packet_id, subtasks_for_packet)
             packet_id += 1
             yield self.model.load_balancer.queue.put(packet)

@@ -5,15 +5,16 @@ import simpy
 
 class MicroService:
 
-    def __init__(self, ms_id, exp_lambd, env, aggregator, fail_perc, time_down_lambd, process_time_list):
+    def __init__(self, ms_id, compute_power, env, aggregator, fail_perc, time_down_lambd, process_time_list, network_lambda=1.0):
         self.ms_id = ms_id
-        self.exp_mu = exp_lambd
+        self.compute_power = compute_power
         self.fail_perc = fail_perc
         self.time_down_lambd = time_down_lambd
         self.env = env
         self.queue = simpy.Store(env)
         self.aggregator = aggregator
         self.process_time_list = process_time_list
+        self.network_lambda = network_lambda  # Network delay parameter
 
     def process_subtask(self):
         while True:
@@ -23,13 +24,15 @@ class MicroService:
 
             subtask = yield self.queue.get()
             process_start = self.env.now
-            # print(f"{process_start}: server #{self.ms_id}# start processing subtask {subtask.id} from task {subtask.parent_task}")
-            # Calculate lognormal parameters
-            sigma = 0.5  # Standard deviation for the underlying normal distribution (adjust as needed for shape)
-            mean_service_time = 1.0 / self.exp_mu
-            # mu = ln(mean) - sigma^2 / 2
-            mu = math.log(mean_service_time) - (sigma**2 / 2.0)
-
-            yield self.env.timeout(random.lognormvariate(mu, sigma))
+            
+            # Constant compute time inversely proportional to compute capacity
+            compute_time = 1.0 / self.compute_power
+            yield self.env.timeout(compute_time)
+            
             self.process_time_list[self.ms_id] += (self.env.now - process_start)
+            
+            # Add exponential networking time before task reaches aggregator
+            network_delay = random.expovariate(self.network_lambda)
+            yield self.env.timeout(network_delay)
+            
             yield self.aggregator.queue.put(subtask)

@@ -5,10 +5,10 @@ from model.aggregator import Aggregator
 
 class JoinForkModel:
 
-    def __init__(self, number_of_tasks, env, method, mu_list, number_of_services, task_list, process_time_list, fail_perc=0, time_down=0):
+    def __init__(self, number_of_tasks, env, method, mu_list, number_of_services, task_list, process_time_list, fail_perc=0, time_down=0, network_lambda=1.0):
         self.env = env
         self.aggregator = Aggregator(number_of_tasks, self.env, task_list)
-        self.micro_services = [MicroService(i, mu_list[i], self.env, self.aggregator, fail_perc, time_down, process_time_list) for i in range(number_of_services)]
+        self.micro_services = [MicroService(i, mu_list[i], self.env, self.aggregator, fail_perc, time_down, process_time_list, network_lambda) for i in range(number_of_services)]
         self.load_balancer = LoadBalancer(self.micro_services, method, self.env, task_list)
 
     def run_model(self):
