@@ -1,6 +1,7 @@
-import math
 import random
 import simpy
+
+from consts import INER_NETWORK_OVERHEAD_FACTOR
 
 
 class MicroService:
@@ -15,6 +16,10 @@ class MicroService:
         self.aggregator = aggregator
         self.process_time_list = process_time_list
         self.network_lambda = network_lambda  # Network delay parameter
+        self.all_services = None  # Will be set later to access the list of all microservices
+
+    def set_all_services(self, all_services):
+        self.all_services = all_services
 
     def process_subtask(self):
         while True:
@@ -31,8 +36,16 @@ class MicroService:
             
             self.process_time_list[self.ms_id] += (self.env.now - process_start)
             
-            # Add exponential networking time before task reaches aggregator
-            network_delay = random.expovariate(self.network_lambda)
-            yield self.env.timeout(network_delay)
+            if self.all_services:
+                # Scale network delay by the number of other microservices
+                num_other_services = len(self.all_services) - 1
+                overhead_factor = INER_NETWORK_OVERHEAD_FACTOR ** (num_other_services - 1)
+                iner_network_delay = random.expovariate(self.network_lambda) * overhead_factor
+            else:
+                iner_network_delay = 0.0
+            
+            network_sending_to_aggregator_delay = random.expovariate(self.network_lambda)
+                
+            yield self.env.timeout(iner_network_delay + network_sending_to_aggregator_delay)
             
             yield self.aggregator.queue.put(subtask)

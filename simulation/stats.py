@@ -1,6 +1,7 @@
 import numpy as np
 from consts import SHOULD_SAVE
 import pandas as pd
+import os
 
 
 from .test_cases import test_case_name
@@ -18,5 +19,8 @@ def save_stats(results, func, percentages, func_name, model_description):
             data[title] = test_case
 
     if SHOULD_SAVE:
+        if not os.path.exists("results"):
+            os.makedirs("results")
+
         df = pd.DataFrame(data, index=percentages)
         df.to_csv(f"results/{func_name} - {model_description}.csv", index=True)
