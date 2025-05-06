@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import re
 
-# --- New code to discover metrics, models, and test cases ---
 results_dir = "results"
 all_files = []
 if os.path.exists(results_dir):
@@ -18,16 +17,27 @@ if not all_files:
 
 metrics = set()
 models = set()
+lambdas = set()
 test_cases = None
 first_file_processed = False
-file_pattern = re.compile(r"^(.*?) - (.*?)\.csv$")
+file_pattern = re.compile(r"^(.*?) - (.*?)(?:_lambda_([\d.]+))?\.csv$")
 
 for filename in all_files:
     match = file_pattern.match(filename)
     if match:
-        metric, model = match.groups()
+        # Extract metric, model name, and lambda
+        groups = match.groups()
+        metric = groups[0]
+        model = groups[1]
+        lambda_val = groups[2]
+        
         metrics.add(metric)
-        models.add(model)
+        # For models, store just the base model name without lambda
+        if lambda_val:
+            models.add(model)
+            lambdas.add(float(lambda_val))
+        else:
+            models.add(model)
 
         # Try to read test cases from the first valid file found
         if not first_file_processed:
@@ -43,10 +53,10 @@ for filename in all_files:
     else:
         print(f"Warning: Skipping file with unexpected name format: {filename}")
 
-
 # Convert sets to sorted lists for consistent plotting order
 metrics = sorted(list(metrics))
 models = sorted(list(models))
+lambdas = sorted(list(lambdas)) if lambdas else [None]
 
 if not metrics:
     print("Error: No metrics found. Ensure filenames are in 'Metric Name - Model Name.csv' format.")
@@ -60,45 +70,77 @@ if not test_cases:
 
 print(f"Discovered metrics: {metrics}")
 print(f"Discovered models: {models}")
+print(f"Discovered lambda values: {lambdas}")
 
-# --- New plotting logic ---
-# Loop through each metric
+
+# plot each model and metric for each test case, showing different lambdas
 for metric in metrics:
-    # Loop through each test case
     for test_case in test_cases:
-        plt.figure(figsize=(10, 6))  # Create a new figure for each metric/test_case pair
-        ax = plt.gca()  # Get current axes
+        for lambda_val in lambdas:
+            if lambda_val is None:
+                continue  # Skip if no lambda value
 
-        # Loop through each model to plot its data on the current figure
-        for model in models:
-            file_name = f"{metric} - {model}.csv"
-            file_path = os.path.join(results_dir, file_name)
+            plt.figure(figsize=(10, 6))
+            ax = plt.gca()
 
-            if os.path.exists(file_path):
-                try:
-                    df = pd.read_csv(file_path, index_col=0)
-                    # Ensure the test case exists in this file's columns
-                    if test_case in df.columns:
-                         # Check if index is named, otherwise use df.index
-                        if df.index.name:
+            for model in models:
+                file_name = f"{metric} - {model}_lambda_{lambda_val}.csv"
+                file_path = os.path.join(results_dir, file_name)
+
+                if os.path.exists(file_path):
+                    try:
+                        df = pd.read_csv(file_path, index_col=0)
+                        if test_case in df.columns:
                             x_values = df.index
+                            ax.plot(x_values, df[test_case], marker='o', label=model)
                         else:
-                             # If index has no name, assume it's the load percentage
-                             # If read_csv didn't set index_col=0 correctly, this might need adjustment
-                             x_values = df.index # Or potentially df.iloc[:, 0] if index is treated as data
+                            print(f"Warning: Test case '{test_case}' not found in {file_name}")
+                    except Exception as e:
+                        print(f"Error reading or plotting {file_path}: {e}")
+                else:
+                    print(f"Warning: File not found: {file_name}")
 
-                        ax.plot(x_values, df[test_case], marker='o', label=model)
-                    else:
-                        print(f"Warning: Test case '{test_case}' not found in {file_name}")
-                except Exception as e:
-                    print(f"Error reading or plotting {file_path}: {e}")
-            else:
-                print(f"Warning: File not found for model '{model}', metric '{metric}': {file_name}")
+            ax.set_xlabel("Load Percentage")
+            ax.set_ylabel(metric)
+            ax.set_title(f"{metric} for {test_case} with λ = {lambda_val} vs Load Percentage")
+            ax.legend()
+            ax.grid(True)
+            plt.tight_layout()
+            plt.show()
 
-        ax.set_xlabel("Load Percentage")
-        ax.set_ylabel(metric)
-        ax.set_title(f"{metric} for {test_case} vs Load Percentage")
-        ax.legend()
-        ax.grid(True)
-        plt.tight_layout()
-        plt.show() # Show the plot for the current metric/test_case
+# Compare different models for each lambda value
+for metric in metrics:
+    for test_case in test_cases:
+        for model in models:
+            plt.figure(figsize=(10, 6))
+            ax = plt.gca()
+
+            for lambda_val in lambdas:
+                if lambda_val is not None:
+                    file_name = f"{metric} - {model}_lambda_{lambda_val}.csv"
+                else:
+                    file_name = f"{metric} - {model}.csv"
+
+                file_path = os.path.join(results_dir, file_name)
+
+                if os.path.exists(file_path):
+                    try:
+                        df = pd.read_csv(file_path, index_col=0)
+                        if test_case in df.columns:
+                            x_values = df.index
+                            label = f"λ = {lambda_val}" if lambda_val is not None else model
+                            ax.plot(x_values, df[test_case], marker='o', label=label)
+                        else:
+                            print(f"Warning: Test case '{test_case}' not found in {file_name}")
+                    except Exception as e:
+                        print(f"Error reading or plotting {file_path}: {e}")
+                else:
+                    print(f"Warning: File not found: {file_name}")
+
+            ax.set_xlabel("Load Percentage")
+            ax.set_ylabel(metric)
+            ax.set_title(f"{metric} for {test_case} in {model} vs Load Percentage")
+            ax.legend()
+            ax.grid(True)
+            plt.tight_layout()
+            plt.show()

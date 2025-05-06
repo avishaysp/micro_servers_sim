@@ -13,5 +13,5 @@ test_case_name = ["Constant Interval Tasks",
                   "Overlapping Tasks",
                   "Small Prob. of Servers Failure"]
 
-
+lambdas = [0.5, 1.0, 2.0, 4.0, 8.0]
 percentages = list(range(20, 121, 20))
