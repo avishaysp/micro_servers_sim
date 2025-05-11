@@ -5,26 +5,26 @@ models = [
     {
         "mu_list": [TASK_SIZE],
         'lb_method': 'll',
-        'description': 'Monolithic',
+        'description': 'Monolithic [1]',
     },
     {
         "mu_list": [TASK_SIZE // 2, TASK_SIZE // 2],
         'lb_method': 'll',
-        'description': '2 Services',
+        'description': '2 Services [2]',
     },
     {
         "mu_list": [1] + [2 ** i for i in range(int(np.log2(TASK_SIZE)))],
         'lb_method': 'll',
-        'description': 'Logarithmic',
+        'description': 'Logarithmic [3]',
     },
     {
         "mu_list": [1 for _ in range(TASK_SIZE)],
         'lb_method': 'rr',
-        'description': 'Distributed (RR)',
+        'description': 'Distributed [RR]',
     },
     {
         "mu_list": [1 for _ in range(TASK_SIZE)],
         'lb_method': 'll',
-        'description': 'Distributed (LL)',
+        'description': 'Distributed [LL]',
     },
 ]
