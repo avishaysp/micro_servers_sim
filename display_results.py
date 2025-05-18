@@ -131,7 +131,7 @@ def plot_models(results_dir, selected_metrics, selected_models, selected_lambdas
                     else:
                         print(f"Warning: File not found: {file_name}")
 
-                ax.set_xlabel("Load Percentage")
+                ax.set_xlabel("Load Percentage (%)")
                 ax.set_ylabel(metric)
                 ax.set_title(f"{metric} for {test_case} with λ = {lambda_val} vs Load Percentage")
                 ax.legend()
