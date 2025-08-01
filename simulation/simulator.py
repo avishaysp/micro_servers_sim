@@ -13,11 +13,11 @@ import concurrent.futures
 
 
 def summarize_results(results, model_description):
-    save_stats(results, calculate_avg, percentages, "Avg. Processing Time", model_description)
-    save_stats(results, calculate_min, percentages, "Min. Processing Time", model_description)
-    save_stats(results, calculate_max, percentages, "Max. Processing Time", model_description)
-    save_stats(results, calculate_std, percentages, "STD Processing Time", model_description)
-    save_stats(results, calculate_system_utilization, percentages, "Utilization Perc", model_description)
+    save_stats(results, calculate_avg, percentages, "Avg. Processing Time (s)", model_description)
+    save_stats(results, calculate_min, percentages, "Min. Processing Time (s)", model_description)
+    save_stats(results, calculate_max, percentages, "Max. Processing Time (s)", model_description)
+    save_stats(results, calculate_std, percentages, "STD Processing Time (s)", model_description)
+    save_stats(results, calculate_system_utilization, percentages, "Utilization Perc (%)", model_description)
 
 
 def run_model(compute_power, model_to_test, packet_generator, with_fails, network_lambda):
