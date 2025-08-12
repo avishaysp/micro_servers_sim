@@ -39,7 +39,7 @@ class MicroService:
             if self.all_services:
                 # Scale network delay by the number of other microservices
                 num_other_services = len(self.all_services) - 1
-                overhead_factor = INER_NETWORK_OVERHEAD_FACTOR ** (num_other_services - 1)
+                overhead_factor = INER_NETWORK_OVERHEAD_FACTOR ** num_other_services
                 iner_network_delay = random.expovariate(self.network_lambda) * overhead_factor
             else:
                 iner_network_delay = 0.0

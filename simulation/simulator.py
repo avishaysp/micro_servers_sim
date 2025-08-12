@@ -21,7 +21,6 @@ def summarize_results(results, model_description):
 
 
 def run_model(compute_power, model_to_test, packet_generator, with_fails, network_lambda):
-    print(f"###test case running {packet_generator.__name__}")
     env = simpy.Environment()
     task_list = TaskList(NUMBER_OT_TASKS)
     process_time_list = [0 for _ in range(len(model_to_test["mu_list"]))]
@@ -60,7 +59,7 @@ def run_simulation():
                     for l, network_lambda in enumerate(lambdas):
                         compute_power = 100 / perc
                         for k in range(NUMBER_OF_SIM):
-                            future = executor.submit(run_model, compute_power, model, test_case[0], test_case[1], network_lambda)
+                            future = executor.submit(run_model, compute_power, model, test_case[0], test_case[1], float(network_lambda))
                             future_to_index[future] = (i, j, l, k)
 
             for future in concurrent.futures.as_completed(future_to_index):
