@@ -25,7 +25,7 @@ def calculate_system_utilization(result):
     services_utilization_time, mu_list, total_time = create_args_to_calculate_from_result(result, False)
     total_cpu = np.sum(mu_list)
     total_time_cpu = total_time * total_cpu
-    return sum(mu_list * services_utilization_time) / total_time_cpu
+    return (sum(mu_list * services_utilization_time) / total_time_cpu) * 100
 
 
 def create_args_to_calculate_from_result(result, task_time):

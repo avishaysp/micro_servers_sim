@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
@@ -41,13 +43,13 @@ for filename in all_files:
         groups = match.groups()
         metric = groups[0]
         model = groups[1]
-        lambda_val = groups[2]
+        lambda_val = int(groups[2], 10) if groups[2] else None
         
         metrics.add(metric)
         # For models, store just the base model name without lambda
         if lambda_val:
             models.add(model)
-            lambdas.add(float(lambda_val))
+            lambdas.add(lambda_val)
         else:
             models.add(model)
 
